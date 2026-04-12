@@ -27,13 +27,8 @@ Requirements:
   (NodeGraphQt requires PySide2 or PySide6)
 """
 
-import sys
 import math
-
-from Qt import QtWidgets, QtCore, QtGui
-
-from NodeGraphQt import NodeGraph, BaseNode
-from NodeGraphQt.constants import NodePropWidgetEnum
+from NodeGraphQt import BaseNode
 
 # ---------------------------------------------------------------------------
 # Custom Node
@@ -64,8 +59,6 @@ class ProductionNode(BaseNode):
     def __init__(self):
         super().__init__()
 
-        self.started = 0
-
         # ── add/remove ports ───────────────────────────────────────────────
         self.add_button("add_output", "+1 Output", tab="Properties")
         self.add_button("remove_output", "-1 Output", tab="Properties")
@@ -77,7 +70,7 @@ class ProductionNode(BaseNode):
         btn.value_changed.connect(self._remove_port)
 
         # ── rename button ──────────────────────────────────────────────────
-        self.add_button("rename_ports", "Rename Ports", tab="Properties")
+        self.add_button("rename_ports", "Rename", tab="Properties")
         
         btn = self.get_widget('rename_ports')
         btn.value_changed.connect(self._sync_output_port_labels)
@@ -197,8 +190,6 @@ class ProductionNode(BaseNode):
     # ------------------------------------------------------------------
 
     def _sync_output_ports(self, desired: int):
-        if self.started > 10:
-            return
         """
         Add or remove output ports (and their qty/name properties) so the
         node has exactly `desired` output ports.
@@ -225,18 +216,6 @@ class ProductionNode(BaseNode):
             if self.get_property(qty_key) is None:
                 self.add_text_input(qty_key, f"Out Qty [{i}]", tab="Properties")
                 self.set_property(qty_key, "1")
-
-        # ── remove excess ports ────────────────────────────────────────
-        for i in range(desired, current):
-            port_name = self._out_port_name(i)
-            port = self.get_output(port_name)
-            if port:
-                for cp in list(port.connected_ports()):
-                    port.disconnect_from(cp)
-                self.delete_output(port_name)
-            # intentionally keep the qty/name properties so values are remembered if user adds ports again
-        
-        self.started += 1
 
     def _sync_output_port_labels(self):
         # ── sync display labels for all current ports ──────────────────
@@ -312,26 +291,6 @@ class ProductionNode(BaseNode):
                 for cp in value:
                     port.connect_to(cp)
                     pass
-
-        """
-        port_data = {
-                    'input_ports':
-                        [{
-                            'name': 'input',
-                            'multi_connection': True,
-                            'display_name': 'Input',
-                            'locked': False
-                        }],
-                    'output_ports':
-                        [{
-                            'name': 'output',
-                            'multi_connection': True,
-                            'display_name': 'Output',
-                            'locked': False
-                        }]
-                }
-        """
-        
 
     # ------------------------------------------------------------------
     # core calculation
