@@ -52,9 +52,13 @@ def build_graph():
 
     btn_add    = QtWidgets.QPushButton("＋  Add Node")
     btn_recalc = QtWidgets.QPushButton("⟳  Recalculate All")
+    btn_show_properties = QtWidgets.QPushButton("🗂️  Show Properties Bin")
+
     toolbar.addWidget(btn_add)
     toolbar.addSeparator()
     toolbar.addWidget(btn_recalc)
+    toolbar.addSeparator()
+    toolbar.addWidget(btn_show_properties)
 
     def add_node():
         node = graph.create_node(
@@ -81,8 +85,10 @@ def build_graph():
         for node in graph.all_nodes():
             visit(node)
 
+
     btn_add.clicked.connect(add_node)
     btn_recalc.clicked.connect(recalculate_all)
+    btn_show_properties.clicked.connect(properties_bin.show)
 
     # ── wrap viewer in a window with toolbar ──────────────────────────────
     main_widget = QtWidgets.QWidget()
@@ -118,7 +124,7 @@ def build_graph():
     n1 = graph.create_node("factory.nodes.ProductionNode", name="Mine Ore",     pos=[-500,   0])
     n2 = graph.create_node("factory.nodes.ProductionNode", name="Smelt Ingots", pos=[ -100,  -80])
     n3 = graph.create_node("factory.nodes.ProductionNode", name="Forge Parts",  pos=[  300,  -80])
-    n4 = graph.create_node("factory.nodes.ProductionNode", name="Slag Dump",    pos=[ -100,   80])
+    n4 = graph.create_node("factory.nodes.ProductionNode", name="Slag Dump",    pos=[ -100,   350])
 
     # Mine Ore: no input, 2 outputs – ore and slag
     n1.set_property("input_qty",   "0")
