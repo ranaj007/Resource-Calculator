@@ -50,15 +50,19 @@ def build_graph():
     lbl = QtWidgets.QLabel("  Factory Production Planner  |  ")
     toolbar.addWidget(lbl)
 
-    btn_add    = QtWidgets.QPushButton("＋  Add Node")
+
+    btn_add = QtWidgets.QPushButton("+  Add Node")
+    btn_delete_node = QtWidgets.QPushButton("🗑️  Delete Node")
     btn_recalc = QtWidgets.QPushButton("⟳  Recalculate All")
     btn_show_properties = QtWidgets.QPushButton("🗂️  Show Properties Bin")
 
     toolbar.addWidget(btn_add)
+    toolbar.addWidget(btn_delete_node)
     toolbar.addSeparator()
     toolbar.addWidget(btn_recalc)
     toolbar.addSeparator()
     toolbar.addWidget(btn_show_properties)
+
 
     def add_node():
         node = graph.create_node(
@@ -68,6 +72,10 @@ def build_graph():
             push_undo=True,
         )
         node.recalculate()
+
+    def delete_selected_nodes():
+        for node in graph.selected_nodes():
+            graph.delete_node(node)
 
     def recalculate_all():
         """Recalculate every node in the graph (topological ordering not
@@ -89,6 +97,7 @@ def build_graph():
     btn_add.clicked.connect(add_node)
     btn_recalc.clicked.connect(recalculate_all)
     btn_show_properties.clicked.connect(properties_bin.show)
+    btn_delete_node.clicked.connect(delete_selected_nodes)
 
     # ── wrap viewer in a window with toolbar ──────────────────────────────
     main_widget = QtWidgets.QWidget()
