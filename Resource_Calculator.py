@@ -130,7 +130,7 @@ class ProductionNode(BaseNode):
             return self.output_port_data[idx]["name"]
         return f"output_{idx}"
     
-    def _add_output_port(self, port_name, multi_output=True):
+    def _add_output_port(self, port_name, multi_output=False):
         self.add_output(port_name, multi_output=multi_output)
         self.output_port_data.append({"name": port_name})
     
@@ -152,7 +152,7 @@ class ProductionNode(BaseNode):
 
         if self.get_property(name_key) is None:
             self.add_text_input(name_key, f"Out Name [{i}]", tab="Properties")
-            self.set_property(name_key, f"output {i}")
+            self.set_property(name_key, f"output_{i}")
         else:
             self.get_widget(name_key).setVisible(True)
 
@@ -203,19 +203,7 @@ class ProductionNode(BaseNode):
 
         # ── add missing ports ──────────────────────────────────────────
         for i in range(current, desired):
-            port_name = self._out_port_name(i)
-            qty_key   = self._out_qty_key(i)
-            name_key  = self._out_name_key(i)
-
-            self._add_output_port(port_name)
-
-            if self.get_property(name_key) is None:
-                self.add_text_input(name_key, f"Out Name [{i}]", tab="Properties")
-                self.set_property(name_key, f"output {i}")
-
-            if self.get_property(qty_key) is None:
-                self.add_text_input(qty_key, f"Out Qty [{i}]", tab="Properties")
-                self.set_property(qty_key, "1")
+            self._add_port()
 
     def _sync_output_port_labels(self):
         # ── sync display labels for all current ports ──────────────────

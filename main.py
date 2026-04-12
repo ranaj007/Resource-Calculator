@@ -1,10 +1,6 @@
-import sys
-import math
+from Qt import QtWidgets
 
-from Qt import QtWidgets, QtCore, QtGui
-
-from NodeGraphQt import NodeGraph, BaseNode, PropertiesBinWidget
-from NodeGraphQt.constants import NodePropWidgetEnum
+from NodeGraphQt import NodeGraph, PropertiesBinWidget
 
 from Resource_Calculator import ProductionNode
 
@@ -13,7 +9,7 @@ from Resource_Calculator import ProductionNode
 # ---------------------------------------------------------------------------
 
 def build_graph():
-    app = QtWidgets.QApplication.instance() or QtWidgets.QApplication(sys.argv)
+    app = QtWidgets.QApplication([])
 
     # ── create graph ──────────────────────────────────────────────────────
     graph = NodeGraph()
@@ -25,7 +21,6 @@ def build_graph():
 
     # ── create properties bin ───────────────────────────────────────────────
     properties_bin = PropertiesBinWidget(parent=None, node_graph=graph)
-    #properties_bin.show()
 
     # ── toolbar ───────────────────────────────────────────────────────────
     viewer = graph.widget
