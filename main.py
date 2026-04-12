@@ -24,7 +24,7 @@ def build_graph():
 
     # ── toolbar ───────────────────────────────────────────────────────────
     viewer = graph.widget
-    viewer.setWindowTitle("Factory Production Planner  –  NodeGraphQt")
+    viewer.setWindowTitle("Factory Production Planner  -  NodeGraphQt")
     viewer.resize(1280, 760)
 
     toolbar = QtWidgets.QToolBar("Toolbar")
@@ -130,7 +130,7 @@ def build_graph():
     n3 = graph.create_node("factory.nodes.ProductionNode", name="Forge Parts",  pos=[  300,  -80])
     n4 = graph.create_node("factory.nodes.ProductionNode", name="Slag Dump",    pos=[ -100,   350])
 
-    # Mine Ore: no input, 2 outputs – ore and slag
+    # Mine Ore: no input, 2 outputs - ore and slag
     n1.set_property("input_qty",   "0")
     n1.set_property("num_outputs", "2")
     n1.set_property("out_qty_0",   "30")   # ore at 30 u/s

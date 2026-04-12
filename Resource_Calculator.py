@@ -40,17 +40,17 @@ class ProductionNode(BaseNode):
 
     Ports
     -----
-    • input       – receives upstream output rate (units / sec), multi-input
-    • output_N    – emits this node's output rate for product N (units / sec)
+    • input       - receives upstream output rate (units / sec), multi-input
+    • output_N    - emits this node's output rate for product N (units / sec)
 
     Embedded properties (rendered as line-edit widgets inside the node)
     -------------------------------------------------------------------
-    • input_qty   – units this step *consumes* per cycle
-    • num_outputs – how many output ports / products to create
-    • out_qty_N   – units produced per cycle on output port N  (dynamic)
-    • out_name_N  – display label for output port N            (dynamic)
-    • time        – seconds per cycle
-    • machines    – (read-only display) calculated machine count
+    • input_qty   - units this step *consumes* per cycle
+    • num_outputs - how many output ports / products to create
+    • out_qty_N   - units produced per cycle on output port N  (dynamic)
+    • out_name_N  - display label for output port N            (dynamic)
+    • time        - seconds per cycle
+    • machines    - (read-only display) calculated machine count
     """
 
     __identifier__ = "factory.nodes"
@@ -77,7 +77,6 @@ class ProductionNode(BaseNode):
 
         # ── editable inputs ────────────────────────────────────────────────
         self.add_text_input("input_qty",   "Input Qty",  tab="Properties")
-        self.add_text_input("num_outputs", "# Outputs",  tab="Properties")
         self.add_text_input("time",        "Time (s)",   tab="Properties")
 
         # ── read-only display ──────────────────────────────────────────────
@@ -87,8 +86,9 @@ class ProductionNode(BaseNode):
         self.add_input("input", multi_input=True)
 
         # ── defaults ──────────────────────────────────────────────────────
+        self.model.add_property("num_outputs", "1") # to be removed eventually, but needed for now to seed the initial output ports
+
         self.set_property("input_qty",   "1")
-        self.set_property("num_outputs", "1")
         self.set_property("time",        "1")
         self.set_property("machines",    "—")
 
@@ -306,7 +306,7 @@ class ProductionNode(BaseNode):
         upstream_rate = self._get_upstream_rate()
 
         if upstream_rate is None:
-            # nothing connected – standalone, assume 1 machine
+            # nothing connected - standalone, assume 1 machine
             machines = 1
             self.set_property("machines", f"{machines}  (standalone)")
         else:
