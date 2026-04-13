@@ -147,6 +147,10 @@ def build_graph():
         node_objs[from_idx].output(from_port).connect_to(node_objs[to_idx].input(to_port))
 
     recalculate_all()
+
+    for node in graph.all_nodes():
+        node._sync_output_port_labels()
+
     graph.fit_to_selection()
 
     main_widget.show()
