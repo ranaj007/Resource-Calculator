@@ -1,0 +1,56 @@
+{
+  "nodes": [
+    {
+      "type": "factory.nodes.ProductionNode",
+      "name": "Mine Ore",
+      "pos": [-500, 0],
+      "properties": {
+        "input_qty": "0",
+        "num_outputs": "2",
+        "out_qty_0": "30",
+        "out_name_0": "ore",
+        "out_qty_1": "5",
+        "out_name_1": "slag",
+        "time": "1"
+      }
+    },
+    {
+      "type": "factory.nodes.ProductionNode",
+      "name": "Smelt Ingots",
+      "pos": [-100, -80],
+      "properties": {
+        "input_qty": "3",
+        "num_outputs": "1",
+        "out_qty_0": "1",
+        "time": "2"
+      }
+    },
+    {
+      "type": "factory.nodes.ProductionNode",
+      "name": "Forge Parts",
+      "pos": [300, -80],
+      "properties": {
+        "input_qty": "2",
+        "num_outputs": "1",
+        "out_qty_0": "1",
+        "time": "5"
+      }
+    },
+    {
+      "type": "factory.nodes.ProductionNode",
+      "name": "Slag Dump",
+      "pos": [-100, 350],
+      "properties": {
+        "input_qty": "1",
+        "num_outputs": "1",
+        "out_qty_0": "0",
+        "time": "1"
+      }
+    }
+  ],
+  "connections": [
+    {"from": [0, 0], "to": [1, 0]},
+    {"from": [0, 1], "to": [3, 0]},
+    {"from": [1, 0], "to": [2, 0]}
+  ]
+}

@@ -120,55 +120,34 @@ def build_graph():
 
     graph.property_changed.connect(on_property_changed)
 
-    # ── seed with an example chain ────────────────────────────────────────
-    #
-    #   Mine Ore  ──[ore]──►  Smelt Ingots  ──[ingots]──►  Forge Parts
-    #             ╲─[slag]──►  Slag Dump
-    #
-    n1 = graph.create_node("factory.nodes.ProductionNode", name="Mine Ore",     pos=[-500,   0])
-    n2 = graph.create_node("factory.nodes.ProductionNode", name="Smelt Ingots", pos=[ -100,  -80])
-    n3 = graph.create_node("factory.nodes.ProductionNode", name="Forge Parts",  pos=[  300,  -80])
-    n4 = graph.create_node("factory.nodes.ProductionNode", name="Slag Dump",    pos=[ -100,   350])
 
-    # Mine Ore: no input, 2 outputs - ore and slag
-    n1.set_property("input_qty",   "0")
-    n1.set_property("num_outputs", "2")
-    n1.set_property("out_qty_0",   "30")   # ore at 30 u/s
-    n1.set_property("out_name_0",  "ore")
-    n1.set_property("out_qty_1",   "5")    # slag at  5 u/s
-    n1.set_property("out_name_1",  "slag")
-    n1.set_property("time",        "1")
+    # ── load example graph from JSON file ────────────────────────────────
+    import json
+    import os
+    json_path = os.path.join(os.path.dirname(__file__), "example_graph.json")
+    with open(json_path, "r") as f:
+        data = json.load(f)
 
-    # Smelt Ingots: consumes ore, produces ingots
-    n2.set_property("input_qty",   "3")
-    n2.set_property("num_outputs", "1")
-    n2.set_property("out_qty_0",   "1")
-    n2.set_property("time",        "2")
+    node_objs = []
+    # Create nodes
+    for node_data in data.get("nodes", []):
+        node = graph.create_node(
+            node_data["type"],
+            name=node_data.get("name", "Node"),
+            pos=node_data.get("pos", [0, 0])
+        )
+        for prop, value in node_data.get("properties", {}).items():
+            node.set_property(prop, value)
+        node_objs.append(node)
 
-    # Forge Parts: consumes ingots, produces parts
-    n3.set_property("input_qty",   "2")
-    n3.set_property("num_outputs", "1")
-    n3.set_property("out_qty_0",   "1")
-    n3.set_property("time",        "5")
-
-    # Slag Dump: consumes slag (no useful output)
-    n4.set_property("input_qty",   "1")
-    n4.set_property("num_outputs", "1")
-    n4.set_property("out_qty_0",   "0")
-    n4.set_property("time",        "1")
-
-    # wire up
-    n1.output(0).connect_to(n2.input(0))   # ore   → smelter
-    n1.output(1).connect_to(n4.input(0))   # slag  → dump
-    n2.output(0).connect_to(n3.input(0))   # ingots → forge
+    # Create connections
+    for conn in data.get("connections", []):
+        from_idx, from_port = conn["from"]
+        to_idx, to_port = conn["to"]
+        node_objs[from_idx].output(from_port).connect_to(node_objs[to_idx].input(to_port))
 
     recalculate_all()
     graph.fit_to_selection()
-
-    n1.updating_ports = False
-    n2.updating_ports = False
-    n3.updating_ports = False
-    n4.updating_ports = False
 
     main_widget.show()
     app.exec()
