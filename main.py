@@ -50,6 +50,8 @@ def build_graph():
     btn_delete_node = QtWidgets.QPushButton("🗑️  Delete Node")
     btn_recalc = QtWidgets.QPushButton("⟳  Recalculate All")
     btn_show_properties = QtWidgets.QPushButton("🗂️  Show Properties Bin")
+    btn_load = QtWidgets.QPushButton("📂  Load Graph")
+    btn_save = QtWidgets.QPushButton("💾  Save Graph")
 
     toolbar.addWidget(btn_add)
     toolbar.addWidget(btn_delete_node)
@@ -57,6 +59,9 @@ def build_graph():
     toolbar.addWidget(btn_recalc)
     toolbar.addSeparator()
     toolbar.addWidget(btn_show_properties)
+    toolbar.addSeparator()
+    toolbar.addWidget(btn_load)
+    toolbar.addWidget(btn_save)
 
 
     def add_node():
@@ -121,37 +126,84 @@ def build_graph():
     graph.property_changed.connect(on_property_changed)
 
 
-    # ── load example graph from JSON file ────────────────────────────────
+
     import json
     import os
-    json_path = os.path.join(os.path.dirname(__file__), "example_graph.json")
-    with open(json_path, "r") as f:
-        data = json.load(f)
 
-    node_objs = []
-    # Create nodes
-    for node_data in data.get("nodes", []):
-        node = graph.create_node(
-            node_data["type"],
-            name=node_data.get("name", "Node"),
-            pos=node_data.get("pos", [0, 0])
-        )
-        for prop, value in node_data.get("properties", {}).items():
-            node.set_property(prop, value)
-        node_objs.append(node)
+    def clear_graph():
+        for node in graph.all_nodes():
+            graph.delete_node(node)
 
-    # Create connections
-    for conn in data.get("connections", []):
-        from_idx, from_port = conn["from"]
-        to_idx, to_port = conn["to"]
-        node_objs[from_idx].output(from_port).connect_to(node_objs[to_idx].input(to_port))
+    def load_graph_from_json(json_path):
+        clear_graph()
+        with open(json_path, "r") as f:
+            data = json.load(f)
+        node_objs = []
+        for node_data in data.get("nodes", []):
+            node = graph.create_node(
+                node_data["type"],
+                name=node_data.get("name", "Node"),
+                pos=node_data.get("pos", [0, 0])
+            )
+            for prop, value in node_data.get("properties", {}).items():
+                node.set_property(prop, value)
+            node_objs.append(node)
+        for conn in data.get("connections", []):
+            from_idx, from_port = conn["from"]
+            to_idx, to_port = conn["to"]
+            node_objs[from_idx].output(from_port).connect_to(node_objs[to_idx].input(to_port))
+        recalculate_all()
+        for node in graph.all_nodes():
+            if hasattr(node, '_sync_output_port_labels'):
+                node._sync_output_port_labels()
+        graph.fit_to_selection()
 
-    recalculate_all()
+    def save_graph_to_json(json_path):
+        nodes = []
+        node_index = {}
+        for idx, node in enumerate(graph.all_nodes()):
+            node_index[node] = idx
+            node_data = {
+                "type": type(node).type_,
+                "name": node.name(),
+                "pos": node.pos(),
+                "properties": {k: v for k, v in node.model._custom_prop.items()}
+            }
+            nodes.append(node_data)
+        connections = []
+        for node in graph.all_nodes():
+            idx_from = node_index[node]
+            for i, port in enumerate(node.output_ports()):
+                for conn in port.connected_ports():
+                    node_to = conn.node()
+                    idx_to = node_index[node_to]
+                    in_port_idx = node_to.input_ports().index(conn)
+                    connections.append({"from": [idx_from, i], "to": [idx_to, in_port_idx]})
+        data = {"nodes": nodes, "connections": connections}
+        with open(json_path, "w") as f:
+            json.dump(data, f, indent=2)
 
-    for node in graph.all_nodes():
-        node._sync_output_port_labels()
+    # Initial load
+    default_json_path = os.path.join(os.path.dirname(__file__), "example_graph.json")
+    load_graph_from_json(default_json_path)
 
-    graph.fit_to_selection()
+
+    def on_load_clicked():
+        options = QtWidgets.QFileDialog.Options()
+        file_path, _ = QtWidgets.QFileDialog.getOpenFileName(
+            main_widget, "Load Graph from JSON", "", "JSON Files (*.json);;All Files (*)", options=options)
+        if file_path:
+            load_graph_from_json(file_path)
+
+    def on_save_clicked():
+        options = QtWidgets.QFileDialog.Options()
+        file_path, _ = QtWidgets.QFileDialog.getSaveFileName(
+            main_widget, "Save Graph to JSON", "", "JSON Files (*.json);;All Files (*)", options=options)
+        if file_path:
+            save_graph_to_json(file_path)
+
+    btn_load.clicked.connect(on_load_clicked)
+    btn_save.clicked.connect(on_save_clicked)
 
     main_widget.show()
     app.exec()
