@@ -2,7 +2,7 @@ from Qt import QtWidgets
 
 from NodeGraphQt import NodeGraph, PropertiesBinWidget
 
-from Resource_Calculator import ProductionNode
+from ProductionNode import ProductionNode
 
 # ---------------------------------------------------------------------------
 # Graph wiring
@@ -49,6 +49,7 @@ def build_graph():
     btn_add = QtWidgets.QPushButton("+  Add Node")
     btn_delete_node = QtWidgets.QPushButton("🗑️  Delete Node")
     btn_recalc = QtWidgets.QPushButton("⟳  Recalculate All")
+    btn_rename = QtWidgets.QPushButton("✏️  Rename Outputs")
     btn_show_properties = QtWidgets.QPushButton("🗂️  Show Properties Bin")
     btn_load = QtWidgets.QPushButton("📂  Load Graph")
     btn_save = QtWidgets.QPushButton("💾  Save Graph")
@@ -57,12 +58,17 @@ def build_graph():
     toolbar.addWidget(btn_delete_node)
     toolbar.addSeparator()
     toolbar.addWidget(btn_recalc)
+    toolbar.addWidget(btn_rename)
     toolbar.addSeparator()
     toolbar.addWidget(btn_show_properties)
     toolbar.addSeparator()
     toolbar.addWidget(btn_load)
     toolbar.addWidget(btn_save)
 
+    def rename_outputs():
+        for node in graph.all_nodes():
+            if hasattr(node, '_sync_output_port_labels'):
+                node._sync_output_port_labels()
 
     def add_node():
         node = graph.create_node(
@@ -98,6 +104,7 @@ def build_graph():
     btn_recalc.clicked.connect(recalculate_all)
     btn_show_properties.clicked.connect(properties_bin.show)
     btn_delete_node.clicked.connect(delete_selected_nodes)
+    btn_rename.clicked.connect(rename_outputs)
 
     # ── wrap viewer in a window with toolbar ──────────────────────────────
     main_widget = QtWidgets.QWidget()
@@ -153,9 +160,7 @@ def build_graph():
             to_idx, to_port = conn["to"]
             node_objs[from_idx].output(from_port).connect_to(node_objs[to_idx].input(to_port))
         recalculate_all()
-        for node in graph.all_nodes():
-            if hasattr(node, '_sync_output_port_labels'):
-                node._sync_output_port_labels()
+        rename_outputs()
         graph.fit_to_selection()
 
     def save_graph_to_json(json_path):
