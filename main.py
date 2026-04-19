@@ -1,5 +1,4 @@
 import os
-
 from ProductionGraph import ProductionGraph
 
 def main():
@@ -9,6 +8,7 @@ def main():
     default_json_path = os.path.join(os.path.dirname(__file__), "example_graph.json")
     graph.load_graph_from_json(default_json_path)
 
+    # Start the graph editor
     graph.start()
 
 if __name__ == "__main__":

@@ -140,7 +140,9 @@ class ProductionNode(BaseNode):
             'locked': port.model.locked
         }
     
+    
     def add_port(self) -> None:
+        """Add a new output port to the node."""
         i = len(self.output_ports())
         port_name = self._out_port_name(i)
         qty_key   = self._out_qty_key(i)
@@ -161,8 +163,10 @@ class ProductionNode(BaseNode):
             self.get_widget(qty_key).setVisible(True)
         
         self.update()
+
     
     def remove_port(self) -> None:
+        """Removes the last output port and hides its properties."""
         i = len(self.output_ports()) - 1
         qty_key  = self._out_qty_key(i)
         name_key = self._out_name_key(i)
@@ -185,7 +189,7 @@ class ProductionNode(BaseNode):
 
 
     def _sync_output_port_labels(self) -> None:
-        # ── sync display labels for all current ports ──────────────────
+        """Keep output port display names in sync with their corresponding property values."""
 
         output_port_qty = len(self.output_ports())
 
@@ -302,6 +306,7 @@ class ProductionNode(BaseNode):
             rates[port_name] = rate
 
         return rates
+    
 
     def _get_upstream_rate(self) -> float | None:
         """

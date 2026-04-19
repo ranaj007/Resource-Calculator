@@ -99,6 +99,7 @@ class ProductionGraph():
 
         self.graph.property_changed.connect(on_property_changed)
     
+    
     def start(self):
         """Show the main window and start the Qt event loop."""
         self.main_widget.show()
