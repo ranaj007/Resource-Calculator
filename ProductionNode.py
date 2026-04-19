@@ -13,22 +13,10 @@ Each node represents a production step with:
 The node calculates:
   machines_needed = ceil( upstream_rate / (input_qty / time) )
   port_rate[N]    = machines_needed * out_qty_N / time   (units / sec)
-
-Port naming note
-----------------
-NodeGraphQt uses the port's *name* as its stable identity for connections.
-To avoid breaking wires when the user renames a port, we keep the internal
-port name as the fixed key "output_N" and only change the *display label*
-shown on the node via port.set_name().  The rates dict is always keyed by
-the fixed "output_N" name so lookups remain stable.
-
-Requirements:
-  pip install NodeGraphQt
-  (NodeGraphQt requires PySide2 or PySide6)
 """
 
 import math
-from NodeGraphQt import BaseNode
+from NodeGraphQt import BaseNode, Port
 
 # ---------------------------------------------------------------------------
 # Custom Node
@@ -64,10 +52,10 @@ class ProductionNode(BaseNode):
         self.add_button("remove_output", "-1 Output", tab="Properties")
 
         btn = self.get_widget('add_output')
-        btn.value_changed.connect(self._add_port)
+        btn.value_changed.connect(self.add_port)
 
         btn = self.get_widget('remove_output')
-        btn.value_changed.connect(self._remove_port)
+        btn.value_changed.connect(self.remove_port)
 
         # ── editable inputs ────────────────────────────────────────────────
         self.add_text_input("input_qty",   "Input Qty",  tab="Properties")
@@ -80,7 +68,7 @@ class ProductionNode(BaseNode):
         self.add_input("input", multi_input=True)
 
         # ── defaults ──────────────────────────────────────────────────────
-        self.model.add_property("num_outputs", "1") # to be removed eventually, but needed for now to seed the initial output ports
+        self.model.add_property("num_outputs", "1") # add hidden property to track how many output ports the node should have
 
         self.set_property("input_qty",   "1")
         self.set_property("time",        "1")
@@ -90,45 +78,61 @@ class ProductionNode(BaseNode):
         self.output_port_data = []   # store per-port data here
 
         # Seed with one output port + its qty property
-        self._sync_output_ports(1)
+        self.add_port()
 
         # Allow NodeGraphQt to delete output ports at runtime
         self.set_port_deletion_allowed(True)
 
     # ------------------------------------------------------------------
+    # adding type hints for inherited methods
+    # ------------------------------------------------------------------
+
+    def get_input(self, port: int | str) -> Port | None:
+        return super().get_input(port)
+    
+    def get_output(self, port: int | str) -> Port | None:
+        return super().get_output(port)
+    
+    def input_ports(self) -> list[Port]:
+        return super().input_ports()
+    
+    def output_ports(self) -> list[Port]:
+        return super().output_ports()
+
+    # ------------------------------------------------------------------
     # helpers
     # ------------------------------------------------------------------
 
-    def _safe_float(self, prop, default=1.0):
+    def _safe_float(self, prop: str, default: float = 1.0) -> float:
         try:
             val = float(self.get_property(prop))
             return val if val > 0 else default
         except (ValueError, TypeError):
             return default
 
-    def _safe_int(self, prop, default=1, minimum=1):
+    def _safe_int(self, prop: str, default: int = 1, minimum: int = 1) -> int:
         try:
             val = int(float(self.get_property(prop)))
             return max(val, minimum)
         except (ValueError, TypeError):
             return default
 
-    def _out_qty_key(self, idx):
+    def _out_qty_key(self, idx: int) -> str:
         return f"out_qty_{idx}"
 
-    def _out_name_key(self, idx):
+    def _out_name_key(self, idx: int) -> str:
         return f"out_name_{idx}"
 
-    def _out_port_name(self, idx):
+    def _out_port_name(self, idx: int) -> str:
         if idx < len(self.output_port_data):
             return self.output_port_data[idx]["name"]
         return f"output_{idx}"
     
-    def _add_output_port(self, port_name, multi_output=False):
+    def _add_output_port(self, port_name: str, multi_output: bool = False) -> None:
         self.add_output(port_name, multi_output=multi_output)
         self.output_port_data.append({"name": port_name})
     
-    def _port_to_dict(self, port):
+    def _port_to_dict(self, port: Port) -> dict:
         return {
             'name': port.name(),
             'multi_connection': port.multi_connection(),
@@ -136,7 +140,7 @@ class ProductionNode(BaseNode):
             'locked': port.model.locked
         }
     
-    def _add_port(self):
+    def add_port(self) -> None:
         i = len(self.output_ports())
         port_name = self._out_port_name(i)
         qty_key   = self._out_qty_key(i)
@@ -158,7 +162,7 @@ class ProductionNode(BaseNode):
         
         self.update()
     
-    def _remove_port(self):
+    def remove_port(self) -> None:
         i = len(self.output_ports()) - 1
         qty_key  = self._out_qty_key(i)
         name_key = self._out_name_key(i)
@@ -179,27 +183,8 @@ class ProductionNode(BaseNode):
         
         self.update()
 
-    # ------------------------------------------------------------------
-    # dynamic port management
-    # ------------------------------------------------------------------
 
-    def _sync_output_ports(self, desired: int):
-        """
-        Add or remove output ports (and their qty/name properties) so the
-        node has exactly `desired` output ports.
-
-        The internal port key is always "output_N" (stable, never changes so
-        wires are never broken).  The *display label* on the port is set from
-        the out_name_N property and can be changed freely by the user.
-        """
-        existing_ports = [p.name() for p in self.output_ports()]
-        current = len(existing_ports)
-
-        # ── add missing ports ──────────────────────────────────────────
-        for i in range(current, desired):
-            self._add_port()
-
-    def _sync_output_port_labels(self):
+    def _sync_output_port_labels(self) -> None:
         # ── sync display labels for all current ports ──────────────────
 
         output_port_qty = len(self.output_ports())
@@ -233,7 +218,7 @@ class ProductionNode(BaseNode):
                 connected_ports[i] = port.connected_ports()
 
         try:
-            input_port_connections = self.input(0).connected_ports() if self.input(0) else []
+            input_port_connections = self.get_input(0).connected_ports() if self.get_input(0) else []
         except Exception as e:
             print(f"Error getting connected ports for input of node {self.name()}: {e}")
             raise e
@@ -262,7 +247,7 @@ class ProductionNode(BaseNode):
         self.set_ports(port_data)
 
         for cp in input_port_connections:
-            self.input(0).connect_to(cp)
+            self.get_input(0).connect_to(cp)
             pass
 
         for idx, value in connected_ports.items():
@@ -278,7 +263,7 @@ class ProductionNode(BaseNode):
     # core calculation
     # ------------------------------------------------------------------
 
-    def recalculate(self):
+    def recalculate(self) -> dict:
         """
         Pull the upstream output rate from any connected input port,
         compute machines_needed, then return a dict of per-port rates:
@@ -290,11 +275,6 @@ class ProductionNode(BaseNode):
         input_qty = self._safe_float("input_qty", 1.0)
         time_val  = self._safe_float("time",      1.0)
         num_out   = self._safe_int("num_outputs",  1)
-
-        # keep ports in sync with the property value
-        self._sync_output_ports(num_out)
-
-        #self._sync_output_port_labels()
 
         # ── upstream rate ──────────────────────────────────────────────
         upstream_rate = self._get_upstream_rate()
@@ -323,7 +303,7 @@ class ProductionNode(BaseNode):
 
         return rates
 
-    def _get_upstream_rate(self):
+    def _get_upstream_rate(self) -> float | None:
         """
         Return the *sum* of output rates (units/sec) from all nodes connected
         to our input port, or None if nothing is connected.
