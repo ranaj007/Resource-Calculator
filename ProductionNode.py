@@ -17,6 +17,7 @@ The node calculates:
 
 import math
 from NodeGraphQt import BaseNode, Port
+from DictDisplayWidget import DictDisplayWidget
 
 # ---------------------------------------------------------------------------
 # Custom Node
@@ -56,6 +57,14 @@ class ProductionNode(BaseNode):
 
         btn = self.get_widget('remove_output')
         btn.value_changed.connect(self.remove_port)
+
+        # ── details widget ───────────────────────────────────────────────
+        self.details_widget = DictDisplayWidget(
+            parent=self.view,
+            name="dict_display",
+            label="",
+        )
+        self.add_custom_widget(self.details_widget, tab="widget")
 
         # ── editable inputs ────────────────────────────────────────────────
         self.add_text_input("input_qty",   "Input Qty",  tab="Properties")
@@ -296,6 +305,7 @@ class ProductionNode(BaseNode):
 
         if upstream_rate is None:
             # nothing connected - standalone, assume 1 machine
+            machines = 1
             min_machines = 1
             self.set_property("machines", f"{min_machines}  (standalone)")
         else:
@@ -310,12 +320,22 @@ class ProductionNode(BaseNode):
 
         # ── per-port output rates ──────────────────────────────────────
         rates = {}
+        details_lines = {}
+        
         for i in range(num_out):
             qty_key   = self._out_qty_key(i)
             out_qty   = self._safe_float(qty_key, 1.0)
-            rate      = (min_machines * out_qty) / time_val
+            ideal_rate      = (min_machines * out_qty) / time_val
+            real_rate       = (machines * out_qty) / time_val
             port_name = self._out_port_name(i)
-            rates[port_name] = rate
+            rates[port_name] = real_rate
+            out_name = self.get_property(self._out_name_key(i))
+            details_lines[f"{out_name or port_name} (ideal)"] = ideal_rate
+            details_lines[f"{out_name or port_name} (real)"] = real_rate
+
+        # Update details widget
+        if hasattr(self, "details_widget"):
+            self.details_widget.set_dict(details_lines)
 
         return rates
     
