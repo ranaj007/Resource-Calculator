@@ -69,8 +69,8 @@ class ProductionGraph():
         btn_show_props.clicked.connect(self.properties_bin.show)
         btn_delete_node.clicked.connect(self.delete_selected_nodes)
         btn_rename.clicked.connect(self.rename_outputs)
-        btn_load.clicked.connect(self.load_graph_from_json)
-        btn_save.clicked.connect(self.save_graph_to_json)
+        btn_load.clicked.connect(self.on_load_clicked)
+        btn_save.clicked.connect(self.on_save_clicked)
 
         # ── wrap viewer in a window with toolbar ──────────────────────────────
         self.main_widget = QtWidgets.QWidget()
@@ -99,7 +99,7 @@ class ProductionGraph():
 
         self.graph.property_changed.connect(on_property_changed)
     
-    
+
     def start(self):
         """Show the main window and start the Qt event loop."""
         self.main_widget.show()

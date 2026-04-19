@@ -148,6 +148,9 @@ class ProductionNode(BaseNode):
         qty_key   = self._out_qty_key(i)
         name_key  = self._out_name_key(i)
 
+        num_outputs = self._safe_int("num_outputs", 1)
+        self.set_property("num_outputs", str(num_outputs + 1))
+
         self._add_output_port(port_name)
 
         if self.get_property(name_key) is None:
@@ -166,10 +169,14 @@ class ProductionNode(BaseNode):
 
     
     def remove_port(self) -> None:
-        """Removes the last output port and hides its properties."""
+        """Removes the last output port and its properties."""
         i = len(self.output_ports()) - 1
         qty_key  = self._out_qty_key(i)
         name_key = self._out_name_key(i)
+
+        num_outputs = self._safe_int("num_outputs", 1)
+        if num_outputs > 1:
+            self.set_property("num_outputs", str(num_outputs - 1))
 
         port = self.get_output(-1)
         if port:
@@ -179,11 +186,15 @@ class ProductionNode(BaseNode):
         
         self.output_port_data.pop()
         
-        # hide the properties but keep them around so values are remembered if user adds ports again
+        # hide the properties
         if self.get_property(name_key) is not None:
             self.get_widget(name_key).setVisible(False)
         if self.get_property(qty_key) is not None:
             self.get_widget(qty_key).setVisible(False)
+        
+        # remove the properties from the model so they don't show up in JSON export
+        self.model._custom_prop.pop(name_key, None)
+        self.model._custom_prop.pop(qty_key, None)
         
         self.update()
 
@@ -285,23 +296,24 @@ class ProductionNode(BaseNode):
 
         if upstream_rate is None:
             # nothing connected - standalone, assume 1 machine
-            machines = 1
-            self.set_property("machines", f"{machines}  (standalone)")
+            min_machines = 1
+            self.set_property("machines", f"{min_machines}  (standalone)")
         else:
             consumption_per_machine = input_qty / time_val
             if consumption_per_machine > 0:
-                machines = math.ceil(upstream_rate / consumption_per_machine)
+                machines = upstream_rate / consumption_per_machine
+                min_machines = math.ceil(machines)
             else:
-                machines = 0
-            machines = max(machines, 1)
-            self.set_property("machines", str(machines))
+                min_machines = 0
+            min_machines = max(min_machines, 1)
+            self.set_property("machines", f"{min_machines} ({machines:.2f})")
 
         # ── per-port output rates ──────────────────────────────────────
         rates = {}
         for i in range(num_out):
             qty_key   = self._out_qty_key(i)
             out_qty   = self._safe_float(qty_key, 1.0)
-            rate      = (machines * out_qty) / time_val
+            rate      = (min_machines * out_qty) / time_val
             port_name = self._out_port_name(i)
             rates[port_name] = rate
 

@@ -2,84 +2,82 @@
   "nodes": [
     {
       "type": "factory.nodes.ProductionNode",
-      "name": "Mine Ore",
+      "name": "Greenhouse",
       "pos": [
-        -500.0,
-        0.0
+        -526.778904266376,
+        -59.85872718366397
       ],
       "properties": {
         "input_qty": "0",
-        "time": "1",
+        "time": "16",
         "machines": "1  (standalone)",
-        "num_outputs": "2",
-        "out_name_0": "ore",
-        "out_qty_0": "30",
-        "out_name_1": "slag",
-        "out_qty_1": "5"
+        "num_outputs": "1",
+        "out_name_0": "vines",
+        "out_qty_0": "48"
       }
     },
     {
       "type": "factory.nodes.ProductionNode",
-      "name": "Smelt Ingots",
+      "name": "Molecular Assembler",
       "pos": [
-        -100.0,
-        -80.0
+        -240.1954399827919,
+        -60.30962921590002
       ],
       "properties": {
-        "input_qty": "3",
-        "time": "2",
-        "machines": "20",
+        "input_qty": "48",
+        "time": "16",
+        "machines": "1 (1.00)",
         "num_outputs": "1",
-        "out_name_0": "output_0",
-        "out_qty_0": "1"
+        "out_name_0": "plant balls",
+        "out_qty_0": "6"
       }
     },
     {
       "type": "factory.nodes.ProductionNode",
-      "name": "Forge Parts",
+      "name": "Macerator",
       "pos": [
-        300.0,
-        -80.0
+        88.13161036308412,
+        -60.30962921590002
       ],
       "properties": {
         "input_qty": "2",
-        "time": "5",
-        "machines": "25",
+        "time": "10",
+        "machines": "2 (1.88)",
         "num_outputs": "1",
-        "out_name_0": "output_0",
-        "out_qty_0": "1"
+        "out_name_0": "chaff",
+        "out_qty_0": "2.75"
       }
     },
     {
       "type": "factory.nodes.ProductionNode",
-      "name": "Slag Dump",
+      "name": "Brewery",
       "pos": [
-        -100.0,
-        350.0
+        -533.5300119899982,
+        291.7281901280312
       ],
       "properties": {
         "input_qty": "1",
-        "time": "1",
-        "machines": "5",
+        "time": "1.6",
+        "machines": "1 (0.88)",
         "num_outputs": "1",
-        "out_name_0": "output_0",
-        "out_qty_0": "0"
+        "out_name_0": "biomass",
+        "out_qty_0": "750"
       }
     },
     {
       "type": "factory.nodes.ProductionNode",
-      "name": "Step",
+      "name": "Distilery",
       "pos": [
-        289.04669254906685,
-        352.63696490986155
+        -224.48180699046108,
+        292.1353677467912
       ],
       "properties": {
-        "input_qty": "1",
-        "time": "1",
-        "machines": "5",
+        "input_qty": "1000",
+        "time": "1.6",
+        "machines": "1 (0.75)",
         "num_outputs": "1",
-        "out_name_0": "test",
-        "out_qty_0": "1"
+        "out_name_0": "ethanol",
+        "out_qty_0": "600"
       }
     }
   ],
@@ -96,16 +94,6 @@
     },
     {
       "from": [
-        0,
-        1
-      ],
-      "to": [
-        3,
-        0
-      ]
-    },
-    {
-      "from": [
         1,
         0
       ],
@@ -117,6 +105,16 @@
     {
       "from": [
         2,
+        0
+      ],
+      "to": [
+        3,
+        0
+      ]
+    },
+    {
+      "from": [
+        3,
         0
       ],
       "to": [
