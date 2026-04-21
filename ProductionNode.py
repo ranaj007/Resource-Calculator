@@ -17,7 +17,7 @@ The node calculates:
 
 import math
 from NodeGraphQt import BaseNode, Port
-from DictDisplayWidget import DictDisplayWidget
+from DetailsDisplayWidget import DetailsDisplayWidget
 
 # ---------------------------------------------------------------------------
 # Custom Node
@@ -59,7 +59,7 @@ class ProductionNode(BaseNode):
         btn.value_changed.connect(self.remove_port)
 
         # ── details widget ───────────────────────────────────────────────
-        self.details_widget = DictDisplayWidget(
+        self.details_widget = DetailsDisplayWidget(
             parent=self.view,
             name="dict_display",
             label="",
