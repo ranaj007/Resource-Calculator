@@ -89,7 +89,7 @@ class _DetailsRow(QtWidgets.QWidget):
 
         # Value label
         val_lbl = QtWidgets.QLabel(self._format_value(value))
-        val_lbl.setFixedWidth(30)
+        val_lbl.setFixedWidth(42) # set value column width (6 per char)
         val_lbl.setStyleSheet(f"""
             color: {COLORS['val_fg']};
             font-family: {FONT_MONO};

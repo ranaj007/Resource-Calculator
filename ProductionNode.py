@@ -322,7 +322,7 @@ class ProductionNode(BaseNode):
         rates = {}
         details_lines = {}
         
-        for i in range(num_out):
+        for i in range(num_out): # TODO - clean up the off-by-one mess here
             qty_key   = self._out_qty_key(i)
             out_qty   = self._safe_float(qty_key, 1.0)
             ideal_rate      = (min_machines * out_qty) / time_val

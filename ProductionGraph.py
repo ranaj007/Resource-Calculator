@@ -83,6 +83,8 @@ class ProductionGraph():
         layout.addWidget(toolbar)
         layout.addWidget(viewer)
 
+        self.loading = False  # flag to prevent unwanted recalculations during JSON loading
+
         # ── auto-recalculate on connection changes ────────────────────────────
         def on_connection_changed(disconnected, connected):
             self.recalculate_all()
@@ -136,6 +138,9 @@ class ProductionGraph():
         """Recalculate every node in the graph (topological ordering not
         strictly required here because each node recursively walks upstream,
         but we still visit all nodes to refresh standalone ones)."""
+        if self.loading:
+            return  # prevent recalculations while loading from JSON
+        
         visited = set()
 
         def visit(n):
@@ -157,6 +162,7 @@ class ProductionGraph():
 
     def load_graph_from_json(self, json_path: str) -> None:
         """Load a graph from a JSON file, replacing the current graph contents."""
+        self.loading = True
         self.clear_graph()
         with open(json_path, "r") as f:
             data = json.load(f)
@@ -188,6 +194,7 @@ class ProductionGraph():
             from_idx, from_port = conn["from"]
             to_idx, to_port = conn["to"]
             node_objs[from_idx].get_output(from_port).connect_to(node_objs[to_idx].get_input(to_port))
+        self.loading = False
         self.recalculate_all()
         self.rename_outputs()
         self.graph.fit_to_selection()
