@@ -89,7 +89,7 @@ class _DetailsRow(QtWidgets.QWidget):
 
         # Value label
         val_lbl = QtWidgets.QLabel(self._format_value(value))
-        #val_lbl.setFixedWidth(30)
+        val_lbl.setFixedWidth(30)
         val_lbl.setStyleSheet(f"""
             color: {COLORS['val_fg']};
             font-family: {FONT_MONO};
@@ -176,8 +176,9 @@ class DetailsDisplayWidget(NodeBaseWidget):
     def _set_height(self):
         # Adjust container and scroll heights based on number of rows
         row_count = len(self._data)
-        self.container.setFixedHeight(min(20 * row_count, 200))  # max height with scrollbar
-        self.scroll.setFixedHeight(20 * row_count)  # per-row height
+        height = min(20 * row_count, 200)  # 20px per row, max 200px
+        self.container.setFixedHeight(height)  # max height with scrollbar
+        self.scroll.setFixedHeight(height)  # per-row height
 
 
     # ── Public API ────────────────────────────────────────────────────────

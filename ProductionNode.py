@@ -333,9 +333,7 @@ class ProductionNode(BaseNode):
             details_lines[f"{out_name or port_name} (ideal)"] = ideal_rate
             details_lines[f"{out_name or port_name} (real)"] = real_rate
 
-        # Update details widget
-        if hasattr(self, "details_widget"):
-            self.details_widget.set_dict(details_lines)
+        self.details_widget.set_dict(details_lines)
 
         return rates
     
