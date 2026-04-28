@@ -77,7 +77,7 @@ class ProductionNode(BaseNode):
         self.add_input("input", multi_input=True)
 
         # ── defaults ──────────────────────────────────────────────────────
-        self.model.add_property("num_outputs", "1") # add hidden property to track how many output ports the node should have
+        self.model.add_property("num_outputs", "0") # add hidden property to track how many output ports the node should have
 
         self.set_property("input_qty",   "1")
         self.set_property("time",        "1")
@@ -119,7 +119,7 @@ class ProductionNode(BaseNode):
         except (ValueError, TypeError):
             return default
 
-    def _safe_int(self, prop: str, default: int = 1, minimum: int = 1) -> int:
+    def _safe_int(self, prop: str, default: int = 1, minimum: int = 0) -> int:
         try:
             val = int(float(self.get_property(prop)))
             return max(val, minimum)
@@ -180,6 +180,8 @@ class ProductionNode(BaseNode):
     def remove_port(self) -> None:
         """Removes the last output port and its properties."""
         i = len(self.output_ports()) - 1
+        if i == 0:
+            return
         qty_key  = self._out_qty_key(i)
         name_key = self._out_name_key(i)
 
