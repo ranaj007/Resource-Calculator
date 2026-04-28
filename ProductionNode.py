@@ -131,6 +131,9 @@ class ProductionNode(BaseNode):
 
     def _out_name_key(self, idx: int) -> str:
         return f"out_name_{idx}"
+    
+    def _out_qty_real_key(self, idx: int) -> str:
+        return f"out_qty_{idx}_real"
 
     def _out_port_name(self, idx: int) -> str:
         if idx < len(self.output_port_data):
@@ -155,6 +158,7 @@ class ProductionNode(BaseNode):
         i = len(self.output_ports())
         port_name = self._out_port_name(i)
         qty_key   = self._out_qty_key(i)
+        real_qty_key = self._out_qty_real_key(i)
         name_key  = self._out_name_key(i)
 
         num_outputs = self._safe_int("num_outputs", 1)
@@ -173,6 +177,9 @@ class ProductionNode(BaseNode):
             self.set_property(qty_key, "1")
         else:
             self.get_widget(qty_key).setVisible(True)
+
+        if self.get_property(real_qty_key) is None:
+            self.model.add_property(real_qty_key, "0") # hidden property to store real output qty based on machine count
         
         self.update()
 
@@ -181,6 +188,7 @@ class ProductionNode(BaseNode):
         """Removes the last output port and its properties."""
         i = len(self.output_ports()) - 1
         qty_key  = self._out_qty_key(i)
+        real_qty_key = self._out_qty_real_key(i)
         name_key = self._out_name_key(i)
 
         num_outputs = self._safe_int("num_outputs", 1)
@@ -200,10 +208,10 @@ class ProductionNode(BaseNode):
             self.get_widget(name_key).setVisible(False)
         if self.get_property(qty_key) is not None:
             self.get_widget(qty_key).setVisible(False)
-        
         # remove the properties from the model so they don't show up in JSON export
         self.model._custom_prop.pop(name_key, None)
         self.model._custom_prop.pop(qty_key, None)
+        self.model._custom_prop.pop(real_qty_key, None)
         
         self.update()
 
@@ -287,6 +295,14 @@ class ProductionNode(BaseNode):
     # core calculation
     # ------------------------------------------------------------------
 
+    def increment_counter(self) -> None:
+        with open("counter.txt", "r+") as f:
+            count = int(f.read().strip() or "0")
+            count += 1
+            f.seek(0)
+            f.write(str(count))
+            f.truncate()
+
     def recalculate(self) -> dict:
         """
         Pull the upstream output rate from any connected input port,
@@ -321,14 +337,19 @@ class ProductionNode(BaseNode):
         # ── per-port output rates ──────────────────────────────────────
         rates = {}
         details_lines = {}
+
+        if self.NODE_NAME == "Greenhouse":
+            self.increment_counter()
         
         for i in range(num_out): # TODO - clean up the off-by-one mess here
             qty_key   = self._out_qty_key(i)
             out_qty   = self._safe_float(qty_key, 1.0)
+            real_qty_key = self._out_qty_real_key(i)
             ideal_rate      = (min_machines * out_qty) / time_val
             real_rate       = (machines * out_qty) / time_val
             port_name = self._out_port_name(i)
             rates[port_name] = real_rate
+            self.set_property(real_qty_key, f"{real_rate}") # store the real output qty in a hidden property so it can be accessed by downstream nodes
             out_name = self.get_property(self._out_name_key(i))
             details_lines[f"{out_name or port_name} (ideal)"] = ideal_rate
             details_lines[f"{out_name or port_name} (real)"] = real_rate
@@ -358,8 +379,9 @@ class ProductionNode(BaseNode):
         for upstream_port in connected:
             upstream_node = upstream_port.node()
             if isinstance(upstream_node, ProductionNode):
-                upstream_rates = upstream_node.recalculate()
-                # pull the rate for the specific port wired to us
-                rate = upstream_rates.get(upstream_port.name(), 0.0)
-                total += rate
+                # get index of the output port we're connected to on the upstream node
+                port_index = upstream_node.output_ports().index(upstream_port)
+                real_qty_key = upstream_node._out_qty_real_key(port_index)
+                rate = upstream_node.get_property(real_qty_key)
+                total += float(rate)
         return total
