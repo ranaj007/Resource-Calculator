@@ -87,7 +87,7 @@ class ProductionGraph():
 
         # ── auto-recalculate on connection changes ────────────────────────────
         def on_connection_changed(disconnected, connected):
-            self.recalculate_all()
+            self._recalculate_node_and_downstream(connected.node())
 
         self.graph.port_connected.connect(on_connection_changed)
         self.graph.port_disconnected.connect(on_connection_changed)
@@ -97,7 +97,7 @@ class ProductionGraph():
             if (prop_name in ("input_qty", "num_outputs", "time", "machines")
                 or prop_name.startswith("out_qty_")
                 or prop_name.startswith("out_name_")):
-                self.recalculate_all()
+                self._recalculate_node_and_downstream(node)
 
         self.graph.property_changed.connect(on_property_changed)
     
@@ -141,6 +141,17 @@ class ProductionGraph():
         if self.loading:
             return  # prevent recalculations while loading from JSON
         
+        all_nodes = self.graph.all_nodes()
+
+        connections = {}
+
+        for node in all_nodes:
+            node: ProductionNode
+            input_port = node.get_input(0)
+            connected_ports = input_port.connected_ports()
+            
+            connections[node] = [p.node() for p in connected_ports]
+               
         visited = set()
 
         def visit(n):
@@ -150,8 +161,30 @@ class ProductionGraph():
             if isinstance(n, ProductionNode):
                 n.recalculate()
 
-        for node in self.graph.all_nodes():
-            visit(node)
+        while connections:
+            to_visit = [n for n, deps in connections.items() if all(id(d) in visited for d in deps)]
+            if not to_visit:
+                # Circular dependency detected, break the loop to avoid infinite recursion
+                break
+            for n in to_visit:
+                visit(n)
+                visited.add(id(n))
+                del connections[n]
+
+    
+    def _recalculate_node_and_downstream(self, node: ProductionNode, visited=None) -> None:
+        """Recursively recalculate the given node and all downstream nodes."""
+        if visited is None:
+            visited = set()
+        if id(node) in visited:
+            return
+        visited.add(id(node))
+        node.recalculate()
+        for output_port in node.output_ports():
+            for conn in output_port.connected_ports():
+                downstream_node = conn.node()
+                if isinstance(downstream_node, ProductionNode):
+                    self._recalculate_node_and_downstream(downstream_node, visited)
 
 
     def clear_graph(self) -> None:

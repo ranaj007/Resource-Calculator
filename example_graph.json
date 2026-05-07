@@ -3,54 +3,114 @@
     {
       "type": "factory.nodes.ProductionNode",
       "name": "Mine Ore",
-      "pos": [-500, 0],
+      "pos": [
+        -500.0,
+        0.0
+      ],
       "properties": {
+        "dict_display": {},
         "input_qty": "0",
+        "time": "1",
+        "machines": "1  (standalone)",
         "num_outputs": "2",
-        "out_qty_0": "30",
         "out_name_0": "ore",
-        "out_qty_1": "5",
+        "out_qty_0": "30",
         "out_name_1": "slag",
-        "time": "1"
+        "out_qty_1": "5"
       }
     },
     {
       "type": "factory.nodes.ProductionNode",
       "name": "Smelt Ingots",
-      "pos": [-100, -80],
+      "pos": [
+        -93.78414001598398,
+        -80.0
+      ],
       "properties": {
+        "dict_display": {},
         "input_qty": "3",
+        "time": "2",
+        "machines": "20 (20.00)",
         "num_outputs": "1",
-        "out_qty_0": "1",
-        "time": "2"
+        "out_name_0": "iron",
+        "out_qty_0": "1"
       }
     },
     {
       "type": "factory.nodes.ProductionNode",
       "name": "Forge Parts",
-      "pos": [300, -80],
+      "pos": [
+        300.0,
+        -80.0
+      ],
       "properties": {
+        "dict_display": {},
         "input_qty": "2",
+        "time": "5",
+        "machines": "38 (37.50)",
         "num_outputs": "1",
-        "out_qty_0": "1",
-        "time": "5"
+        "out_name_0": "output_0",
+        "out_qty_0": "1"
       }
     },
     {
       "type": "factory.nodes.ProductionNode",
       "name": "Slag Dump",
-      "pos": [-100, 350],
+      "pos": [
+        -100.0,
+        350.0
+      ],
       "properties": {
+        "dict_display": {},
         "input_qty": "1",
+        "time": "1",
+        "machines": "5 (5.00)",
         "num_outputs": "1",
-        "out_qty_0": "0",
-        "time": "1"
+        "out_name_0": "ref slag",
+        "out_qty_0": "0"
       }
     }
   ],
   "connections": [
-    {"from": [0, 0], "to": [1, 0]},
-    {"from": [0, 1], "to": [3, 0]},
-    {"from": [1, 0], "to": [2, 0]}
+    {
+      "from": [
+        0,
+        0
+      ],
+      "to": [
+        1,
+        0
+      ]
+    },
+    {
+      "from": [
+        0,
+        1
+      ],
+      "to": [
+        3,
+        0
+      ]
+    },
+    {
+      "from": [
+        1,
+        0
+      ],
+      "to": [
+        2,
+        0
+      ]
+    },
+    {
+      "from": [
+        3,
+        0
+      ],
+      "to": [
+        2,
+        0
+      ]
+    }
   ]
 }
