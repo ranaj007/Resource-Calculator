@@ -351,7 +351,8 @@ class ProductionNode(BaseNode):
             real_rate       = (machines * out_qty) / time_val
             port_name = self._out_port_name(i)
             rates[port_name] = real_rate
-            self.set_property(real_qty_key, f"{real_rate}") # store the real output qty in a hidden property so it can be accessed by downstream nodes
+            if self.get_property(real_qty_key) is not None:
+                self.set_property(real_qty_key, f"{real_rate}") # store the real output qty in a hidden property so it can be accessed by downstream nodes
             out_name = self.get_property(self._out_name_key(i))
             details_lines[f"{out_name or port_name} (ideal)"] = ideal_rate
             details_lines[f"{out_name or port_name} (real)"] = real_rate
