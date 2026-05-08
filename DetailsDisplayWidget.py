@@ -176,9 +176,14 @@ class DetailsDisplayWidget(NodeBaseWidget):
     def _set_height(self):
         # Adjust container and scroll heights based on number of rows
         row_count = len(self._data)
-        height = min(20 * row_count, 200)  # 20px per row, max 200px
+        row_height = 19  # estimated height per row (including spacing)
+        height = min(row_height * row_count, row_height * 8)  # max height with scrollbar after 8 rows
         self.container.setFixedHeight(height)  # max height with scrollbar
         self.scroll.setFixedHeight(height)  # per-row height
+
+        self.setMinimumWidth(200)  # ensure enough width for content
+
+        self.adjustSize()
 
 
     # ── Public API ────────────────────────────────────────────────────────
