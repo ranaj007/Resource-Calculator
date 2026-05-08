@@ -48,7 +48,6 @@ class ProductionGraph():
         btn_add = QtWidgets.QPushButton("+  Add Node")
         btn_delete_node = QtWidgets.QPushButton("🗑️  Delete Node")
         btn_recalc = QtWidgets.QPushButton("⟳  Recalculate All")
-        btn_rename = QtWidgets.QPushButton("✏️  Rename Outputs")
         btn_show_props = QtWidgets.QPushButton("🗂️  Show Properties Bin")
         btn_load = QtWidgets.QPushButton("📂  Load Graph")
         btn_save = QtWidgets.QPushButton("💾  Save Graph")
@@ -57,7 +56,6 @@ class ProductionGraph():
         toolbar.addWidget(btn_delete_node)
         toolbar.addSeparator()
         toolbar.addWidget(btn_recalc)
-        toolbar.addWidget(btn_rename)
         toolbar.addSeparator()
         toolbar.addWidget(btn_show_props)
         toolbar.addSeparator()
@@ -68,7 +66,6 @@ class ProductionGraph():
         btn_recalc.clicked.connect(self.recalculate_all)
         btn_show_props.clicked.connect(self.properties_bin.show)
         btn_delete_node.clicked.connect(self.delete_selected_nodes)
-        btn_rename.clicked.connect(self.rename_outputs)
         btn_load.clicked.connect(self.on_load_clicked)
         btn_save.clicked.connect(self.on_save_clicked)
 
@@ -106,14 +103,6 @@ class ProductionGraph():
         """Show the main window and start the Qt event loop."""
         self.main_widget.show()
         self.app.exec()
-
-
-    def rename_outputs(self) -> None:
-        """Renames output ports to match their current names in the node properties."""
-        for node in self.graph.all_nodes():
-            if isinstance(node, ProductionNode):
-                node: ProductionNode
-                node._sync_output_port_labels()
 
 
     def add_node(self) -> None:
@@ -245,7 +234,6 @@ class ProductionGraph():
                 node: ProductionNode
                 node.loading = False  # unset loading flag after setup is complete
         self.recalculate_all()
-        self.rename_outputs()
         self.graph.fit_to_selection()
 
 
