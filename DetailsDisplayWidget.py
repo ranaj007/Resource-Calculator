@@ -130,55 +130,63 @@ class DetailsDisplayWidget(NodeBaseWidget):
             }}
         """)
 
+        #self.container.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+
+        #self.container.setFixedHeight(30)  # initial height (will expand with content)
+
         self._outer = QtWidgets.QVBoxLayout(self.container)
         self._outer.setContentsMargins(0, 0, 0, 0)
         self._outer.setSpacing(0)
-
-        # ── Scroll area for rows ──────────────────────────────────────────
-        self.scroll = QtWidgets.QScrollArea()
-        self.scroll.setWidgetResizable(True)
-        self.scroll.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        self.scroll.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
-        self.scroll.setStyleSheet(f"""
-            QScrollArea {{
-                border: none;
+        #self._outer.addStretch()
+        '''
+        self._list_widget = QtWidgets.QListWidget()
+        self._list_widget.setStyleSheet(f"""
+            QListWidget {{
                 background: transparent;
+                border: none;
+                color: {COLORS['val_fg']};
+                font-family: {FONT_MONO};
+                font-size: 11px;
             }}
-            QScrollBar:vertical {{
-                background: {COLORS['scroll']};
-                width: 10px;
-                margin: 0;
+            QListWidget::item {{
+                padding: 4px 6px;
             }}
-            QScrollBar::handle:vertical {{
-                background: {COLORS['bg']};
-                border-radius: 3px;
-                min-height: 10px;
+            QListWidget::item:nth-child(odd) {{
+                background: {COLORS['row_alt']};
             }}
-            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {{
-                height: 0;
+            QListWidget::item:selected {{
+                background: {COLORS['sel_bg']};
             }}
         """)
+        '''
 
-        self._rows_widget = QtWidgets.QWidget()
-        self._rows_widget.setStyleSheet(f"background: {COLORS['bg']}; border: none;")
-        self._rows_layout = QtWidgets.QVBoxLayout(self._rows_widget)
-        self._rows_layout.setContentsMargins(0, 0, 0, 0)
-        self._rows_layout.setSpacing(0)
-        self._rows_layout.addStretch()
+        self.label_style = f"""
+            QLabel {{
+                color: {COLORS['val_fg']};
+                font-family: {FONT_MONO};
+                font-size: 11px;
+            }}
+        """
 
-        self.scroll.setWidget(self._rows_widget)
-        self._outer.addWidget(self.scroll)
+        label1 = QtWidgets.QLabel("top")
+        label2 = QtWidgets.QLabel("bottom")
+        label1.setStyleSheet(self.label_style)
+        label2.setStyleSheet(self.label_style)
+        
+        self._outer.addWidget(label1)
+        #self._outer.addWidget(self._list_widget)
+        self._outer.addWidget(label2)
 
         # ── Finalize ───────────────────────────────────────────────────────
         self.set_custom_widget(self.container)
-
     
     def _set_height(self):
-        # Adjust container and scroll heights based on number of rows
+        # Make the widget grow with the number of entries
+        return
         row_count = len(self._data)
-        height = min(20 * row_count, 200)  # 20px per row, max 200px
-        self.container.setFixedHeight(height)  # max height with scrollbar
-        self.scroll.setFixedHeight(height)  # per-row height
+        height = min(23 * row_count, 200)  # 23px per row, max 200px
+        self.container.setFixedHeight(height + 18*2)  # max height with scrollbar
+        self._list_widget.setFixedHeight(height)  # per-row height
 
 
     # ── Public API ────────────────────────────────────────────────────────
@@ -187,7 +195,7 @@ class DetailsDisplayWidget(NodeBaseWidget):
         assert isinstance(data, dict), "data must be a dict"
         self._data = data
         self._rebuild_rows()
-        #self.update()
+        self._set_height()
 
     def get_dict(self) -> dict:
         """Return the currently displayed dictionary."""
@@ -197,13 +205,13 @@ class DetailsDisplayWidget(NodeBaseWidget):
         """Add or update a single key without rebuilding all rows."""
         self._data[key] = value
         self._rebuild_rows()
-        #self.update()
+        self._set_height()
 
     def remove_key(self, key):
         """Remove a key if present."""
         self._data.pop(key, None)
         self._rebuild_rows()
-        #self.update()
+        self._set_height()
 
     # ── Required NodeBaseWidget overrides ─────────────────────────────────
     def get_value(self):
@@ -216,6 +224,25 @@ class DetailsDisplayWidget(NodeBaseWidget):
 
     # ── Internal ──────────────────────────────────────────────────────────
     def _rebuild_rows(self):
+        while self._outer.count() > 1:
+            item = self._outer.takeAt(0)
+            if item.widget():
+                item.widget().deleteLater()
+        
+        #self._outer.insertWidget(0, QtWidgets.QLabel("top", styleSheet=self.label_style))
+        for i, (k, v) in enumerate(self._data.items()):
+            row = _DetailsRow(k, v, alt=(i % 2 == 1))
+            self._outer.insertWidget(i, row)
+        print(f"{self.size()=}")
+        self.adjustSize()
+        print(f"{self.size()=}")
+        #self._outer.addWidget(QtWidgets.QLabel("bottom", styleSheet=self.label_style))
+        return
+        self._list_widget.clear()
+        for k, v in self._data.items():
+            item = QtWidgets.QListWidgetItem(f"{k}: {v}")
+            self._list_widget.addItem(item)
+        return
         # Clear existing rows (keep the trailing stretch)
         while self._rows_layout.count() > 1:
             item = self._rows_layout.takeAt(0)
@@ -227,6 +254,8 @@ class DetailsDisplayWidget(NodeBaseWidget):
             self._rows_layout.insertWidget(i, row)
 
         self._set_height()
+
+        self.adjustSize()
 
 
 # ────────────────────────────────────────────────────────────────────────────
