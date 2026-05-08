@@ -212,14 +212,26 @@ class ProductionGraph():
 
             if node_data["type"] == "factory.nodes.ProductionNode":
                 node: ProductionNode
-
+                node.loading = True  # set loading flag to prevent recalculations during setup
+            
             # get num_outputs from node_data["properties"] if it exists, otherwise default to 1
             num_outputs = int(node_data.get("properties", {}).get("num_outputs", 1)) - 1
             for i in range(num_outputs):
                     node.add_port()
+            
+            for i, output_data in enumerate(node_data.get("outputs", [])):
+                name = output_data.get("name", f"output_{i}")
+                qty = output_data.get("qty", "1")
+                output_widget = node.get_output_widget(i)
+                if output_widget:
+                    output_widget.set_output_name(name)
+                    output_widget.set_output_qty(qty)
 
             for prop, value in node_data.get("properties", {}).items():
-                node.set_property(prop, value)
+                try:
+                    node.set_property(prop, value)
+                except Exception as e:
+                    print(f"Warning: Failed to set property '{prop}' on node '{node.name()}': {e}")
             
             node_objs.append(node)
 
@@ -228,6 +240,10 @@ class ProductionGraph():
             to_idx, to_port = conn["to"]
             node_objs[from_idx].get_output(from_port).connect_to(node_objs[to_idx].get_input(to_port))
         self.loading = False
+        for node in node_objs:
+            if isinstance(node, ProductionNode):
+                node: ProductionNode
+                node.loading = False  # unset loading flag after setup is complete
         self.recalculate_all()
         self.rename_outputs()
         self.graph.fit_to_selection()
@@ -243,7 +259,14 @@ class ProductionGraph():
                 "type": type(node).type_,
                 "name": node.name(),
                 "pos": node.pos(),
-                "properties": {k: v for k, v in node.model._custom_prop.items()}
+                "properties": {k: v for k, v in node.model._custom_prop.items()},
+                "outputs": [
+                    {
+                        "name": node.get_output_widget(i).get_output_name(),
+                        "qty": node.get_output_widget(i).get_output_qty()
+                    }
+                    for i in range(len(node.output_ports()))
+                ]
             }
             nodes.append(node_data)
         connections = []

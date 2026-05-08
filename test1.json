@@ -11,10 +11,14 @@
         "input_qty": "0",
         "time": "16",
         "machines": "1  (standalone)",
-        "num_outputs": "1",
-        "out_name_0": "vines",
-        "out_qty_0": "48"
-      }
+        "num_outputs": "1"
+      },
+      "outputs": [
+        {
+          "name": "vines",
+          "qty": "48"
+        }
+      ]
     },
     {
       "type": "factory.nodes.ProductionNode",
@@ -27,10 +31,14 @@
         "input_qty": "48",
         "time": "16",
         "machines": "1 (1.00)",
-        "num_outputs": "1",
-        "out_name_0": "plant balls",
-        "out_qty_0": "6"
-      }
+        "num_outputs": "1"
+      },
+      "outputs": [
+        {
+          "name": "plant balls",
+          "qty": "6"
+        }
+        ]
     },
     {
       "type": "factory.nodes.ProductionNode",
@@ -43,10 +51,14 @@
         "input_qty": "2",
         "time": "10",
         "machines": "2 (1.88)",
-        "num_outputs": "1",
-        "out_name_0": "chaff",
-        "out_qty_0": "2.75"
-      }
+        "num_outputs": "1"
+      },
+      "outputs": [
+        {
+          "name": "chaff",
+          "qty": "2.75"
+        }
+      ]
     },
     {
       "type": "factory.nodes.ProductionNode",
@@ -59,10 +71,14 @@
         "input_qty": "1",
         "time": "1.6",
         "machines": "1 (0.88)",
-        "num_outputs": "1",
-        "out_name_0": "biomass",
-        "out_qty_0": "750"
-      }
+        "num_outputs": "1"
+      },
+      "outputs": [
+        {
+          "name": "biomass",
+          "qty": "750"
+        }
+      ]
     },
     {
       "type": "factory.nodes.ProductionNode",
@@ -75,10 +91,14 @@
         "input_qty": "1000",
         "time": "1.6",
         "machines": "1 (0.75)",
-        "num_outputs": "1",
-        "out_name_0": "ethanol",
-        "out_qty_0": "600"
-      }
+        "num_outputs": "1"
+      },
+      "outputs": [
+        {
+          "name": "ethanol",
+          "qty": "600"
+        }
+      ]
     }
   ],
   "connections": [
