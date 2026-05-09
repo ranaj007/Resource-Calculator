@@ -136,7 +136,7 @@ class ProductionGraph():
             if isinstance(node, ProductionNode):
                 node: ProductionNode
                 node.add_port()
-        node.recalculate()
+                node.recalculate()
 
 
     def remove_output_from_selected_nodes(self) -> None:
@@ -145,7 +145,7 @@ class ProductionGraph():
             if isinstance(node, ProductionNode):
                 node: ProductionNode
                 node.remove_port()
-        node.recalculate()
+                node.recalculate()
 
 
     def recalculate_all(self) -> None:
@@ -240,10 +240,18 @@ class ProductionGraph():
                 if output_widget:
                     output_widget.set_output_name(name)
                     output_widget.set_output_qty(qty)
+            
+            props = node_data.get("properties", {})
+            input_qty = props.get("input_qty")
+            time = props.get("time")
+
+            node.input_widget.set_input_qty(input_qty)
+            node.input_widget.set_time(time)
 
             for prop, value in node_data.get("properties", {}).items():
                 try:
-                    node.set_property(prop, value)
+                    if "num_outputs" in prop:
+                        node.set_property(prop, value)
                 except Exception as e:
                     print(f"Warning: Failed to set property '{prop}' on node '{node.name()}': {e}")
             
