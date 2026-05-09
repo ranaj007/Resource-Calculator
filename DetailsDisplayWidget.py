@@ -8,24 +8,7 @@ from NodeGraphQt.widgets.node_widgets import NodeBaseWidget
 
 from Qt import QtWidgets, QtCore, QtGui
 
-
-# ── Colour palette (dark-terminal aesthetic) ────────────────────────────────
-COLORS = {
-    "bg":        "#1a1d23",
-    "row_alt":   "#1f2330",
-    "border":    "#2e3347",
-    "key_fg":    "#7eb8da",   # cool blue  – key column
-    "val_fg":    "#c8d6e5",   # near-white – value column
-    "type_fg":   "#6a9e6a",   # muted green – type badge
-    "header_bg": "#151820",
-    "header_fg": "#4a90b8",
-    "badge_bg":  "#1c2b1c",
-    "sel_bg":    "#25304a",
-    "scroll":    "#2e3347",
-}
-
-FONT_MONO = "Consolas, 'Courier New', monospace"
-
+from styles import COLORS, FONT_MONO
 
 # ────────────────────────────────────────────────────────────────────────────
 #  Compact row widget  (key │ value │ type-badge)

@@ -11,42 +11,54 @@
         "input_qty": "0",
         "time": "16",
         "machines": "1  (standalone)",
-        "num_outputs": "1",
-        "out_name_0": "vines",
-        "out_qty_0": "48"
-      }
+        "num_outputs": "1"
+      },
+      "outputs": [
+        {
+          "name": "vines",
+          "qty": 48.0
+        }
+      ]
     },
     {
       "type": "factory.nodes.ProductionNode",
       "name": "Molecular Assembler",
       "pos": [
-        -240.1954399827919,
-        -60.30962921590002
+        -189.7711118356914,
+        -61.318115778842035
       ],
       "properties": {
         "input_qty": "48",
         "time": "16",
         "machines": "1 (1.00)",
-        "num_outputs": "1",
-        "out_name_0": "plant balls",
-        "out_qty_0": "6"
-      }
+        "num_outputs": "1"
+      },
+      "outputs": [
+        {
+          "name": "plant balls",
+          "qty": 6.0
+        }
+      ]
     },
     {
       "type": "factory.nodes.ProductionNode",
       "name": "Macerator",
       "pos": [
-        88.13161036308412,
-        -60.30962921590002
+        194.02269947199497,
+        -61.31811577884202
       ],
       "properties": {
         "input_qty": "2",
         "time": "10",
         "machines": "2 (1.88)",
-        "num_outputs": "1",
-        "out_name_0": "chaff",
-        "out_qty_0": "2.75"
-      }
+        "num_outputs": "1"
+      },
+      "outputs": [
+        {
+          "name": "chaff",
+          "qty": 2.75
+        }
+      ]
     },
     {
       "type": "factory.nodes.ProductionNode",
@@ -58,27 +70,35 @@
       "properties": {
         "input_qty": "1",
         "time": "1.6",
-        "machines": "1 (0.88)",
-        "num_outputs": "1",
-        "out_name_0": "biomass",
-        "out_qty_0": "750"
-      }
+        "machines": "1 (0.82)",
+        "num_outputs": "1"
+      },
+      "outputs": [
+        {
+          "name": "biomass",
+          "qty": 750.0
+        }
+      ]
     },
     {
       "type": "factory.nodes.ProductionNode",
       "name": "Distilery",
       "pos": [
-        -224.48180699046108,
-        292.1353677467912
+        -163.9726132139406,
+        292.13536774679125
       ],
       "properties": {
         "input_qty": "1000",
         "time": "1.6",
-        "machines": "1 (0.75)",
-        "num_outputs": "1",
-        "out_name_0": "ethanol",
-        "out_qty_0": "600"
-      }
+        "machines": "1 (0.62)",
+        "num_outputs": "1"
+      },
+      "outputs": [
+        {
+          "name": "ethanol",
+          "qty": 600.0
+        }
+      ]
     }
   ],
   "connections": [

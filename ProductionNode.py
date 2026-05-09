@@ -15,9 +15,10 @@ The node calculates:
   port_rate[N]    = machines_needed * out_qty_N / time   (units / sec)
 """
 
-import math
+from OutputRowWidget import OutputRowWidget
+from InputRowWidget import InputRowWidget
 from NodeGraphQt import BaseNode, Port
-from DetailsDisplayWidget import DetailsDisplayWidget
+import math
 
 # ---------------------------------------------------------------------------
 # Custom Node
@@ -48,40 +49,24 @@ class ProductionNode(BaseNode):
     def __init__(self):
         super().__init__()
 
-        # ── add/remove ports ───────────────────────────────────────────────
-        self.add_button("add_output", "+1 Output", tab="Properties")
-        self.add_button("remove_output", "-1 Output", tab="Properties")
-
-        btn = self.get_widget('add_output')
-        btn.value_changed.connect(self.add_port)
-
-        btn = self.get_widget('remove_output')
-        btn.value_changed.connect(self.remove_port)
-
-        # ── details widget ───────────────────────────────────────────────
-        self.details_widget = DetailsDisplayWidget(
-            parent=self.view,
-            name="dict_display",
-            label="",
-        )
-        self.add_custom_widget(self.details_widget, tab="widget")
+        # flag to prevent recalculate() from running during loading
+        self.loading = False 
 
         # ── editable inputs ────────────────────────────────────────────────
-        self.add_text_input("input_qty",   "Input Qty",  tab="Properties")
-        self.add_text_input("time",        "Time (s)",   tab="Properties")
 
-        # ── read-only display ──────────────────────────────────────────────
-        self.add_text_input("machines",    "Machines",   tab="Properties")
+        self.input_widget = InputRowWidget(
+            parent=self.view,
+            name="input_widget",
+        )
+        self.add_custom_widget(self.input_widget, tab="widget")
+        self.input_widget.onInputChange(self.recalculate)
+        self.input_widget.onTimeChange(self.recalculate)
 
         # ── one input connector ───────────────────────────────────────────
         self.add_input("input", multi_input=True)
 
         # ── defaults ──────────────────────────────────────────────────────
         self.model.add_property("num_outputs", "0") # add hidden property to track how many output ports the node should have
-
-        self.set_property("input_qty",   "1")
-        self.set_property("time",        "1")
-        self.set_property("machines",    "—")
 
         # ── output ports ─────────────────────────────────────────────────────────
         self.output_port_data = []   # store per-port data here
@@ -126,15 +111,9 @@ class ProductionNode(BaseNode):
         except (ValueError, TypeError):
             return default
 
-    def _out_qty_key(self, idx: int) -> str:
-        return f"out_qty_{idx}"
-
     def _out_name_key(self, idx: int) -> str:
         return f"out_name_{idx}"
     
-    def _out_qty_real_key(self, idx: int) -> str:
-        return f"out_qty_{idx}_real"
-
     def _out_port_name(self, idx: int) -> str:
         if idx < len(self.output_port_data):
             return self.output_port_data[idx]["name"]
@@ -152,13 +131,18 @@ class ProductionNode(BaseNode):
             'locked': port.model.locked
         }
     
+    def get_output_widget(self, key: int | str) -> OutputRowWidget | None:
+        if isinstance(key, int):
+            key = self._out_name_key(key)
+        widget = self.get_widget(key)
+        if isinstance(widget, OutputRowWidget):
+            return widget
+        return None
     
     def add_port(self) -> None:
         """Add a new output port to the node."""
         i = len(self.output_ports())
         port_name = self._out_port_name(i)
-        qty_key   = self._out_qty_key(i)
-        real_qty_key = self._out_qty_real_key(i)
         name_key  = self._out_name_key(i)
 
         num_outputs = self._safe_int("num_outputs", 1)
@@ -166,32 +150,31 @@ class ProductionNode(BaseNode):
 
         self._add_output_port(port_name)
 
-        if self.get_property(name_key) is None:
-            self.add_text_input(name_key, f"Out Name [{i}]", tab="Properties")
-            self.set_property(name_key, f"output_{i}")
-        else:
-            self.get_widget(name_key).setVisible(True)
+        label = ""
+        if i == 0:
+            label = "Out name        Qty      Ideal      Real    "
 
-        if self.get_property(qty_key) is None:
-            self.add_text_input(qty_key, f"Out Qty [{i}]", tab="Properties")
-            self.set_property(qty_key, "1")
+        if self.get_output_widget(name_key) is None:
+            output = OutputRowWidget(
+                parent=self.view,
+                name=name_key,
+                label=label,
+            )
+            self.add_custom_widget(output, tab="Properties")
+            self._model._custom_prop.pop(name_key, None)  # remove the property auto-added by add_custom_widget
+            output.onNameChange(self._sync_output_port_labels)
+            output.onOutputChange(self.recalculate)
         else:
-            self.get_widget(qty_key).setVisible(True)
-
-        if self.get_property(real_qty_key) is None:
-            self.model.add_property(real_qty_key, "0") # hidden property to store real output qty based on machine count
+            self.show_widget(name_key)
         
         self.update()
-
+        self.recalculate()
     
     def remove_port(self) -> None:
         """Removes the last output port and its properties."""
         i = len(self.output_ports()) - 1
         if i == 0:
             return
-        qty_key  = self._out_qty_key(i)
-        real_qty_key = self._out_qty_real_key(i)
-        name_key = self._out_name_key(i)
 
         num_outputs = self._safe_int("num_outputs", 1)
         if num_outputs > 1:
@@ -204,19 +187,12 @@ class ProductionNode(BaseNode):
             self.delete_output(port.name())
         
         self.output_port_data.pop()
-        
-        # hide the properties
-        if self.get_property(name_key) is not None:
-            self.get_widget(name_key).setVisible(False)
-        if self.get_property(qty_key) is not None:
-            self.get_widget(qty_key).setVisible(False)
-        # remove the properties from the model so they don't show up in JSON export
-        self.model._custom_prop.pop(name_key, None)
-        self.model._custom_prop.pop(qty_key, None)
-        self.model._custom_prop.pop(real_qty_key, None)
+
+        # hide the custom widget for this output's properties
+        name_key = self._out_name_key(i)
+        self.hide_widget(name_key)
         
         self.update()
-
 
     def _sync_output_port_labels(self) -> None:
         """Keep output port display names in sync with their corresponding property values."""
@@ -230,7 +206,8 @@ class ProductionNode(BaseNode):
             name_key  = self._out_name_key(i)
             port = self.get_output(i)
 
-            label = self.get_property(name_key)
+            output_widget = self.get_output_widget(name_key)
+            label = output_widget.get_output_name()
 
             if port and port.name() != label:
                 self.output_port_data[i]["name"] = label
@@ -314,8 +291,11 @@ class ProductionNode(BaseNode):
         Downstream nodes call upstream_node.recalculate() and look up
         the rate for whichever port name they are connected to.
         """
-        input_qty = self._safe_float("input_qty", 1.0)
-        time_val  = self._safe_float("time",      1.0)
+        if self.loading:
+            return {}
+
+        input_qty = self.input_widget.get_input_qty()
+        time_val  = self.input_widget.get_time()
         num_out   = self._safe_int("num_outputs",  1)
 
         # ── upstream rate ──────────────────────────────────────────────
@@ -325,7 +305,6 @@ class ProductionNode(BaseNode):
             # nothing connected - standalone, assume 1 machine
             machines = 1
             min_machines = 1
-            self.set_property("machines", f"{min_machines}  (standalone)")
         else:
             consumption_per_machine = input_qty / time_val
             if consumption_per_machine > 0:
@@ -334,30 +313,37 @@ class ProductionNode(BaseNode):
             else:
                 min_machines = 0
             min_machines = max(min_machines, 1)
-            self.set_property("machines", f"{min_machines} ({machines:.2f})")
+        self.input_widget.set_machines(f"{min_machines} ({machines:.2f})")
 
         # ── per-port output rates ──────────────────────────────────────
         rates = {}
-        details_lines = {}
 
         if self.NODE_NAME == "Greenhouse":
             self.increment_counter()
         
-        for i in range(num_out): # TODO - clean up the off-by-one mess here
-            qty_key   = self._out_qty_key(i)
-            out_qty   = self._safe_float(qty_key, 1.0)
-            real_qty_key = self._out_qty_real_key(i)
-            ideal_rate      = (min_machines * out_qty) / time_val
-            real_rate       = (machines * out_qty) / time_val
+        for i in range(num_out):
             port_name = self._out_port_name(i)
-            rates[port_name] = real_rate
-            if self.get_property(real_qty_key) is not None:
-                self.set_property(real_qty_key, f"{real_rate}") # store the real output qty in a hidden property so it can be accessed by downstream nodes
-            out_name = self.get_property(self._out_name_key(i))
-            details_lines[f"{out_name or port_name} (ideal)"] = ideal_rate
-            details_lines[f"{out_name or port_name} (real)"] = real_rate
-
-        self.details_widget.set_dict(details_lines)
+            output_widget = self.get_output_widget(i)
+            try:
+                if output_widget is None:
+                    continue
+                out_qty = output_widget.get_output_qty()
+                ideal_rate      = (min_machines * out_qty) / time_val
+                real_rate       = (machines * out_qty) / time_val
+                output_widget.set_output_ideal(ideal_rate)
+                output_widget.set_output_real(real_rate)
+                rates[port_name] = real_rate
+            except ValueError:
+                output_widget.set_output_ideal(0)
+                output_widget.set_output_real(0)
+                rates[port_name] = 0.0
+            
+            port = self.get_output(i)
+            if port:
+                for cp in port.connected_ports():
+                    downstream_node = cp.node()
+                    if isinstance(downstream_node, ProductionNode):
+                        downstream_node.recalculate()
 
         return rates
     
@@ -384,7 +370,6 @@ class ProductionNode(BaseNode):
             if isinstance(upstream_node, ProductionNode):
                 # get index of the output port we're connected to on the upstream node
                 port_index = upstream_node.output_ports().index(upstream_port)
-                real_qty_key = upstream_node._out_qty_real_key(port_index)
-                rate = upstream_node.get_property(real_qty_key)
+                rate = upstream_node.get_output_widget(port_index).get_output_real()
                 total += float(rate)
         return total
