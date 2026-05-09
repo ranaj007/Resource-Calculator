@@ -79,7 +79,7 @@ class OutputRowWidget(NodeBaseWidget):
 
         # Output real
         self.output_real = QtWidgets.QLabel(str(output_qty))
-        self.output_real.setStyleSheet(QLabelRed_STYLE)
+        self.output_real.setStyleSheet(QLabelGreen_STYLE)
         self.output_real.setFixedWidth(CHAR_WIDTH * 6)
 
         row.addWidget(self.output_name)
@@ -149,7 +149,7 @@ class OutputRowWidget(NodeBaseWidget):
     
     # ── Required NodeBaseWidget overrides ─────────────────────────────────
     def get_value(self):
-        return self.get_output_qty()
+        return
 
     def set_value(self, value):
         return

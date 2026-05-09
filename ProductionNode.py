@@ -48,6 +48,9 @@ class ProductionNode(BaseNode):
     def __init__(self):
         super().__init__()
 
+        # flag to prevent recalculate() from running during loading
+        self.loading = False 
+
         # ── add/remove ports ───────────────────────────────────────────────
         self.add_button("add_output", "+1 Output", tab="Properties")
         self.add_button("remove_output", "-1 Output", tab="Properties")
@@ -83,9 +86,6 @@ class ProductionNode(BaseNode):
 
         # Allow NodeGraphQt to delete output ports at runtime
         self.set_port_deletion_allowed(True)
-
-        # flag to prevent recalculate() from running during loading
-        self.loading = False 
 
     # ------------------------------------------------------------------
     # adding type hints for inherited methods
@@ -153,7 +153,7 @@ class ProductionNode(BaseNode):
         widget = self.get_widget(key)
         if isinstance(widget, OutputRowWidget):
             return widget
-        raise TypeError(f"No OutputRowWidget found for key '{key}'")
+        return None
     
     def add_port(self) -> None:
         """Add a new output port to the node."""
@@ -166,16 +166,25 @@ class ProductionNode(BaseNode):
 
         self._add_output_port(port_name)
 
-        output = OutputRowWidget(
-            parent=self.view,
-            name=name_key,
-        )
-        self.add_custom_widget(output, tab="Properties")
-        
-        output.onNameChange(self._sync_output_port_labels)
-        output.onOutputChange(self.recalculate)
+        label = ""
+        if i == 0:
+            label = "Out name        Qty      Ideal      Real    "
+
+        if self.get_output_widget(name_key) is None:
+            output = OutputRowWidget(
+                parent=self.view,
+                name=name_key,
+                label=label,
+            )
+            self.add_custom_widget(output, tab="Properties")
+            self._model._custom_prop.pop(name_key, None)  # remove the property auto-added by add_custom_widget
+            output.onNameChange(self._sync_output_port_labels)
+            output.onOutputChange(self.recalculate)
+        else:
+            self.show_widget(name_key)
         
         self.update()
+        self.recalculate()
     
     def remove_port(self) -> None:
         """Removes the last output port and its properties."""
@@ -195,7 +204,7 @@ class ProductionNode(BaseNode):
         
         self.output_port_data.pop()
 
-        # delete the custom widget for this output's properties
+        # hide the custom widget for this output's properties
         name_key = self._out_name_key(i)
         self.hide_widget(name_key)
         
@@ -333,6 +342,8 @@ class ProductionNode(BaseNode):
             port_name = self._out_port_name(i)
             output_widget = self.get_output_widget(i)
             try:
+                if output_widget is None:
+                    continue
                 out_qty = output_widget.get_output_qty()
                 ideal_rate      = (min_machines * out_qty) / time_val
                 real_rate       = (machines * out_qty) / time_val
