@@ -105,35 +105,35 @@ class OutputRowWidget(NodeBaseWidget):
         return value
 
     # ── Public API ────────────────────────────────────────────────────────
-    def get_output_name(self):
+    def get_output_name(self) -> str:
         """Get the current output name."""
         return self.output_name.text()
     
-    def get_output_qty(self):
+    def get_output_qty(self) -> float | None:
         """Get the current output quantity."""
         return self.convert_float(self.output_qty.text())
     
-    def get_output_ideal(self):
+    def get_output_ideal(self) -> float | None:
         """Get the current ideal output."""
         return self.convert_float(self.output_ideal.text())
     
-    def get_output_real(self):
+    def get_output_real(self) -> float | None:
         """Get the current real output."""
         return self.convert_float(self.output_real.text())
     
-    def set_output_name(self, name):
+    def set_output_name(self, name: str) -> None:
         """Set the output name."""
         self.output_name.setText(str(name))
 
-    def set_output_qty(self, qty):
+    def set_output_qty(self, qty: float | None) -> None:
         """Set the output quantity."""
         self.output_qty.setText(self.convert_str(qty))
     
-    def set_output_ideal(self, value):
+    def set_output_ideal(self, value: float | None) -> None:
         """Set the ideal output value."""
         self.output_ideal.setText(self.convert_str(value))
 
-    def set_output_real(self, value):
+    def set_output_real(self, value: float | None) -> None:
         """Set the real output value."""
         self.output_real.setText(self.convert_str(value))
 

@@ -45,14 +45,19 @@ class ProductionGraph():
         lbl = QtWidgets.QLabel("  Factory Planner  |  ")
         toolbar.addWidget(lbl)
 
-        btn_add = QtWidgets.QPushButton("+  Add Node")
+        btn_output_add = QtWidgets.QPushButton("+ Output")
+        btn_output_remove = QtWidgets.QPushButton("- Output")
+        btn_add_node = QtWidgets.QPushButton("+  Add Node")
         btn_delete_node = QtWidgets.QPushButton("🗑️  Delete Node")
         btn_recalc = QtWidgets.QPushButton("⟳  Recalculate All")
         btn_show_props = QtWidgets.QPushButton("🗂️  Show Properties Bin")
         btn_load = QtWidgets.QPushButton("📂  Load Graph")
         btn_save = QtWidgets.QPushButton("💾  Save Graph")
 
-        toolbar.addWidget(btn_add)
+        toolbar.addWidget(btn_output_add)
+        toolbar.addWidget(btn_output_remove)
+        toolbar.addSeparator()
+        toolbar.addWidget(btn_add_node)
         toolbar.addWidget(btn_delete_node)
         toolbar.addSeparator()
         toolbar.addWidget(btn_recalc)
@@ -62,7 +67,9 @@ class ProductionGraph():
         toolbar.addWidget(btn_load)
         toolbar.addWidget(btn_save)
 
-        btn_add.clicked.connect(self.add_node)
+        btn_output_add.clicked.connect(self.add_output_to_selected_nodes)
+        btn_output_remove.clicked.connect(self.remove_output_from_selected_nodes)
+        btn_add_node.clicked.connect(self.add_node)
         btn_recalc.clicked.connect(self.recalculate_all)
         btn_show_props.clicked.connect(self.properties_bin.show)
         btn_delete_node.clicked.connect(self.delete_selected_nodes)
@@ -121,6 +128,24 @@ class ProductionGraph():
         """Delete all selected nodes from the graph."""
         for node in self.graph.selected_nodes():
             self.graph.delete_node(node)
+
+
+    def add_output_to_selected_nodes(self) -> None:
+        """Add an output port to all selected nodes."""
+        for node in self.graph.selected_nodes():
+            if isinstance(node, ProductionNode):
+                node: ProductionNode
+                node.add_port()
+        node.recalculate()
+
+
+    def remove_output_from_selected_nodes(self) -> None:
+        """Remove the last output port from all selected nodes."""
+        for node in self.graph.selected_nodes():
+            if isinstance(node, ProductionNode):
+                node: ProductionNode
+                node.remove_port()
+        node.recalculate()
 
 
     def recalculate_all(self) -> None:

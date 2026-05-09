@@ -51,16 +51,6 @@ class ProductionNode(BaseNode):
         # flag to prevent recalculate() from running during loading
         self.loading = False 
 
-        # ── add/remove ports ───────────────────────────────────────────────
-        self.add_button("add_output", "+1 Output", tab="Properties")
-        self.add_button("remove_output", "-1 Output", tab="Properties")
-
-        btn = self.get_widget('add_output')
-        btn.value_changed.connect(self.add_port)
-
-        btn = self.get_widget('remove_output')
-        btn.value_changed.connect(self.remove_port)
-
         # ── editable inputs ────────────────────────────────────────────────
         self.add_text_input("input_qty",   "Input Qty",  tab="Properties")
         self.add_text_input("time",        "Time (s)",   tab="Properties")
