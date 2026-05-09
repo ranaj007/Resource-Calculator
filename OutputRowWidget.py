@@ -98,7 +98,11 @@ class OutputRowWidget(NodeBaseWidget):
             return float(text)
         except ValueError:
             return None
-        
+    
+    def convert_str(self, value):
+        if not isinstance(value, str):
+            value = f"{value:g}"
+        return value
 
     # ── Public API ────────────────────────────────────────────────────────
     def get_output_name(self):
@@ -123,17 +127,17 @@ class OutputRowWidget(NodeBaseWidget):
 
     def set_output_qty(self, qty):
         """Set the output quantity."""
-        self.output_qty.setText(str(qty))
+        self.output_qty.setText(self.convert_str(qty))
     
     def set_output_ideal(self, value):
         """Set the ideal output value."""
-        self.output_ideal.setText(str(value))
+        self.output_ideal.setText(self.convert_str(value))
 
     def set_output_real(self, value):
         """Set the real output value."""
-        self.output_real.setText(str(value))
+        self.output_real.setText(self.convert_str(value))
 
-        if value < self.get_output_ideal():
+        if float(value) < self.get_output_ideal():
             self.output_real.setStyleSheet(QLabelRed_STYLE)
         else:
             self.output_real.setStyleSheet(QLabelGreen_STYLE)
